@@ -42,7 +42,25 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add assets
-          git diff --staged --quiet && echo "no changes" && exit 0
-          git commit -m "chore: refresh profile cards"
-          git push
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: refresh profile cards"
+            git push
+            exit 0
+          fi
+
+          # Nothing to publish. GitHub disables a scheduled workflow after 60
+          # days without repository activity, which would silently freeze the
+          # card. Rather than commit an empty change every day, only heartbeat
+          # once the repo has been quiet for a while.
+          age=$(( ( $(date -u +%s) - $(git log -1 --format=%ct) ) / 86400 ))
+          echo "assets unchanged; last commit ${age} day(s) ago"
+
+          if [ "$age" -ge 25 ]; then
+            mkdir -p .github
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/last-run
+            git add .github/last-run
+            git commit -m "chore: heartbeat, keep the schedule armed"
+            git push
+          fi

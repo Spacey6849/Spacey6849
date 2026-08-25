@@ -222,7 +222,23 @@ Run it locally:
 GH_TOKEN=$(gh auth token) node scripts/generate-cards.mjs
 ```
 
-`.github/workflows/update-cards.yml` runs the same script daily at 00:30 UTC (06:00 IST) and commits `assets/` only when something changed.
+`.github/workflows/update-cards.yml` runs the same script daily at 00:30 UTC (06:00 IST) and commits `assets/` only when something changed. Trigger it by hand with:
+
+```bash
+gh workflow run "update cards" -R Spacey6849/Spacey6849
+```
+
+### Keeping the schedule armed
+
+GitHub disables a scheduled workflow after **60 days without repository activity**, which would silently freeze the card at whatever it last said — the most likely way this whole thing breaks.
+
+When a run finds nothing to publish it checks how long the repo has been quiet, and once that passes 25 days it writes `.github/last-run` and commits that instead. Quiet periods get an occasional heartbeat rather than a daily empty commit.
+
+`.github/last-run` deliberately does **not** match the workflow's `push` paths, so the heartbeat cannot retrigger the workflow.
+
+One honest caveat: it is not documented whether a commit from `github-actions[bot]` resets GitHub's inactivity clock, or whether only human activity counts. This is the standard mitigation and is widely used, but if GitHub counts only human pushes it will not help. The reliable fallback is the manual `gh workflow run` above, or any push of your own.
+
+Nothing on the card updates on page refresh — the SVG is a static file. Only the animation is live; the numbers change when the workflow regenerates and commits, so they are up to 24 hours stale, plus GitHub's image-proxy cache on top.
 
 ### Private contributions
 
