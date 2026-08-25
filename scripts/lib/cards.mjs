@@ -150,13 +150,24 @@ function definitionRows(rows, top, theme, delay, keyWidth = 92) {
 
 /* -------------------------------------------------------------- sections */
 
-function identitySection(top, profile, theme, moon) {
+function identitySection(top, profile, theme, moon, views) {
   return (
     tagRow("profile", profile.location, top + 36, theme, 0) +
     orbit({ cx: 726, cy: top + 104, theme, moon }) +
     text(profile.name.toUpperCase(), { x: PAD, y: top + 100, size: 34, weight: 700, spacing: 1.5, fill: theme.text, cls: "pop d2", face: "display" }) +
     text(profile.role, { x: PAD, y: top + 128, size: 13, fill: theme.muted, cls: "rise d5", face: "display" }) +
-    text(profile.study, { x: PAD, y: top + 150, size: 13, fill: theme.muted, cls: "rise d7", face: "display" })
+    text(profile.study, { x: PAD, y: top + 150, size: 13, fill: theme.muted, cls: "rise d7", face: "display" }) +
+    (views
+      ? text(`${views.toLocaleString("en-US")} profile views`, {
+          x: RIGHT,
+          y: top + 54,
+          size: 10,
+          fill: theme.muted,
+          anchor: "end",
+          cls: "rise d4",
+          face: "display",
+        })
+      : "")
   );
 }
 
@@ -413,7 +424,7 @@ function leetcodeSection(top, lc, theme) {
 
 /* ---------------------------------------------------------------- poster */
 
-export function posterCard({ profile, links, stats, leetcode, moon, font, astro }, themeName) {
+export function posterCard({ profile, links, stats, leetcode, moon, font, astro, views }, themeName) {
   const theme = THEMES[themeName];
   const stack = layoutStack(0, theme); // measured first; positioned once its top is known
 
@@ -457,7 +468,7 @@ export function posterCard({ profile, links, stats, leetcode, moon, font, astro 
       }),
     ).join("") +
     boundaries +
-    identitySection(tops.identity, profile, theme, moonMarkup) +
+    identitySection(tops.identity, profile, theme, moonMarkup, views) +
     layoutStack(tops.stack, theme).markup +
     (astro
       ? astronaut({

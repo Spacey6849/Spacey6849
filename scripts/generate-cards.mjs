@@ -16,6 +16,7 @@ import { posterCard } from "./lib/cards.mjs";
 import { CONTACTS } from "./lib/icons.mjs";
 import { collectGitHub } from "./lib/github.mjs";
 import { collectLeetCode } from "./lib/leetcode.mjs";
+import { collectViews } from "./lib/views.mjs";
 
 const ASSETS = join(dirname(dirname(fileURLToPath(import.meta.url))), "assets");
 const THEMES = ["dark", "light"];
@@ -63,6 +64,16 @@ async function main() {
     console.error(`leetcode: skipped (${error.message})`);
   }
 
+  // Reading this increments the counter — see lib/views.mjs. A failure just
+  // drops the line rather than failing the run.
+  let views = null;
+  try {
+    views = await collectViews(login);
+    console.log(`views: ${views} profile views`);
+  } catch (error) {
+    console.error(`views: skipped (${error.message})`);
+  }
+
   // Inlined for the same reason as the moon sheet: an SVG behind an <img>
   // cannot fetch a webfont, so a linked one would silently fall back.
   const font = (await readFile(join(ASSETS, FONT_FILE))).toString("base64");
@@ -76,7 +87,7 @@ async function main() {
     // fetch anything, so an external reference would render nothing.
     const sheet = await readFile(join(ASSETS, MOON.file.replace("{theme}", theme)));
     const moon = { frames: MOON.frames, size: MOON.size, base64: sheet.toString("base64") };
-    const data = { profile: PROFILE, links: CONTACTS, stats, leetcode, moon, font, astro };
+    const data = { profile: PROFILE, links: CONTACTS, stats, leetcode, moon, font, astro, views };
     await write(`profile-${theme}.svg`, posterCard(data, theme));
   }
 }

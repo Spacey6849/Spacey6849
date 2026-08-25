@@ -53,6 +53,19 @@ This is what took the two posters from 384 KB to 504 KB — 34 more vector paths
 
 The README is now the poster and nothing else, so **nothing on the profile is clickable**. The contact chips in the poster show the handles as text; a visitor has to type them. If that ever needs to change, the fix is a markdown row of linked images underneath — which is what used to be there.
 
+### Profile views
+
+The count under the location comes from komarev's counter badge, read at build time and drawn into the poster.
+
+**Reading it increments it.** The badge counts requests, so the daily workflow adds roughly 365 a year on top of real visits. That was a deliberate, accepted trade — it is the only way to get a live number into an SVG that cannot fetch anything itself.
+
+Two alternatives were checked and rejected:
+
+- **GitHub's traffic API** (`/repos/{owner}/{repo}/traffic/views`) counts *repo* views. For a profile repo it reads **1**, because profile pages do not register there. Baking that number in would be wrong.
+- **Embedding the badge inside the poster** is impossible; an SVG behind an `<img>` cannot fetch anything.
+
+If the inflation ever needs correcting, `komarev.com/ghpvc/?...&base=N` offsets by a known amount. A failed fetch drops the line rather than failing the run.
+
 ## Animation
 
 Motion is layered. A one-shot entrance cascade plays on load — text rises, figures pop, the trajectory draws itself while the area fill wipes in behind it, bars grow, heatmap cells ignite on a diagonal sweep. Then ambient loops take over and never stop: three parallax star layers drift at different speeds, the nebula swells and settles, fourteen shooting stars streak diagonally at staggered intervals, the moon turns while three satellites orbit it, a probe runs the contribution trajectory, bars hold a slow brightness swell, and lit heatmap cells breathe out of phase.
