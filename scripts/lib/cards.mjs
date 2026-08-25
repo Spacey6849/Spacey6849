@@ -290,7 +290,7 @@ function linksSection(top, links, theme) {
     })
     .join("");
 
-  return label("LINKS", PAD, top + 30, theme, 53) + chips;
+  return label("CONNECT", PAD, top + 30, theme, 53) + chips;
 }
 
 function languageColumn(title, items, x, top, theme, delay) {
