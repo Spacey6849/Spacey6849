@@ -1,0 +1,6 @@
+# Generated SVGs are written with LF; keep them that way on every platform so
+# the daily workflow never sees a line-ending-only diff.
+*.svg text eol=lf
+*.mjs text eol=lf
+*.md  text eol=lf
+*.yml text eol=lf

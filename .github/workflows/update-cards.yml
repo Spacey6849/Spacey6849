@@ -1,0 +1,48 @@
+name: update cards
+
+on:
+  schedule:
+    # 00:30 UTC daily — 06:00 IST, after the previous day has closed.
+    - cron: "30 0 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/update-cards.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-cards
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate SVG cards
+        env:
+          # PROFILE_TOKEN is a classic PAT with read:user (and repo, if you want
+          # private contributions counted). Falls back to GITHUB_TOKEN, which
+          # only ever sees public activity.
+          GH_TOKEN: ${{ secrets.PROFILE_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_LOGIN: Spacey6849
+          LEETCODE_USER: spacey6849
+        run: node scripts/generate-cards.mjs
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets
+          git diff --staged --quiet && echo "no changes" && exit 0
+          git commit -m "chore: refresh profile cards"
+          git push
