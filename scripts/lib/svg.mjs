@@ -540,26 +540,74 @@ export function contributionGrid({ days, x, y, cell = 11, gap = 3, theme, gutter
  * every waypoint; this keeps the heading continuous so `offset-rotate: auto`
  * banks it cleanly.
  */
-/** Submission grid. Cells ignite on a diagonal sweep, then breathe out of phase. */
-export function heatmap({ days, x, y, cell = 12, gap = 3, theme }) {
+/**
+ * LeetCode's own submission calendar: seven weekday rows, but grouped into
+ * month blocks with a gap between them and the month named underneath — not
+ * GitHub's continuous 53-week ribbon.
+ *
+ * Within a month a day's column is `(dayOfMonth - 1 + weekdayOfThe1st) / 7`,
+ * which keeps weekdays on consistent rows while letting each block start on
+ * whatever weekday the month does.
+ */
+export function submissionCalendar({ days, x, y, cell = 11, gap = 3, monthGap = 6, theme }) {
+  const pitch = cell + gap;
   const peak = Math.max(...days.map((d) => d.count), 1);
 
-  const cells = days.map((day, i) => {
-    const column = Math.floor(i / 7);
-    const row = i % 7;
-    const cx = x + column * (cell + gap);
-    const cy = y + row * (cell + gap);
-    const base = rect({ x: cx, y: cy, width: cell, height: cell, fill: theme.track, rx: 3 });
+  const months = new Map();
+  for (const day of days) {
+    const date = new Date(day.ts * 1000);
+    const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+    if (!months.has(key)) {
+      months.set(key, { month: date.getUTCMonth(), first: date, days: [] });
+    }
+    months.get(key).days.push({ ...day, date });
+  }
 
-    if (day.count === 0) return base;
+  let cursor = x;
+  const cells = [];
+  const labels = [];
+  let phase = 0;
 
-    const opacity = round(0.3 + 0.7 * Math.min(1, day.count / peak));
-    const phase = (column + row) % STAGGER_STEPS;
-    const lit = rect({ x: cx, y: cy, width: cell, height: cell, fill: theme.ink, rx: 3, opacity, cls: `ignite d${phase}` });
-    return `${base}<g class="breathe d${phase}">${lit}</g>`;
-  });
+  for (const block of months.values()) {
+    const firstOfMonth = new Date(Date.UTC(block.first.getUTCFullYear(), block.first.getUTCMonth(), 1));
+    const offset = firstOfMonth.getUTCDay();
+    let columns = 0;
 
-  return cells.join("");
+    for (const day of block.days) {
+      const index = day.date.getUTCDate() - 1 + offset;
+      const column = Math.floor(index / 7);
+      columns = Math.max(columns, column + 1);
+
+      const cx = cursor + column * pitch;
+      const cy = y + (index % 7) * pitch;
+      cells.push(rect({ x: cx, y: cy, width: cell, height: cell, fill: theme.track, rx: 2 }));
+
+      if (day.count > 0) {
+        const opacity = round(0.3 + 0.7 * Math.min(1, day.count / peak));
+        cells.push(
+          `<g class="breathe d${phase % STAGGER_STEPS}">` +
+            rect({ x: cx, y: cy, width: cell, height: cell, fill: theme.ink, rx: 2, opacity, cls: `ignite d${phase % STAGGER_STEPS}` }) +
+            `</g>`,
+        );
+      }
+      phase += 1;
+    }
+
+    const width = columns * pitch - gap;
+    labels.push(
+      text(MONTHS[block.month], {
+        x: round(cursor + width / 2),
+        y: y + 7 * pitch + 8,
+        size: 9,
+        fill: theme.muted,
+        anchor: "middle",
+        cls: "rise d50",
+      }),
+    );
+    cursor += width + monthGap;
+  }
+
+  return { markup: cells.join("") + labels.join(""), width: cursor - x - monthGap, height: 7 * pitch - gap + 18 };
 }
 
 /* -------------------------------------------------------------- animation */

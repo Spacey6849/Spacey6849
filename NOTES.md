@@ -171,6 +171,18 @@ Both section tags carry their brand mark, via `tagRow`'s optional `mark` argumen
 
 Both share `STREAK_X`, so the centre column lines up between the two sections.
 
+### The LeetCode submission calendar
+
+Modelled on LeetCode's own, which is **not** GitHub's continuous 53-week ribbon: seven weekday rows grouped into month blocks with a gap between them and the month named underneath.
+
+Within a month a day's column is `(dayOfMonth - 1 + weekdayOfThe1st) / 7`, which keeps weekdays on consistent rows while letting each block begin on whatever weekday the month does.
+
+Sizing is not cosmetic. Twelve blocks plus their gaps are wider than the same days laid out continuously — at `cell: 11` the calendar ran **103px past the right margin** and August fell off the card. `cell: 10, gap: 2, monthGap: 5` measures 790px against 812 available.
+
+The header copies LeetCode's phrasing: `12 submissions in the past one year`, with total active days and max streak on the right. Submissions is the sum of the per-day counts, which is where LeetCode's own figure comes from.
+
+**A labelling bug this surfaced.** LeetCode's `userCalendar.streak` is the *maximum* streak, not the current one — their UI reads "Max streak". The card had been calling it "day streak", which reads as current. Confirmed against live data: `streak 3, activeDays 8, submissions 12`, matching their page exactly. The field is now `maxStreak` and the card says "max streak".
+
 ### The calendar bombardment
 
 The contribution grid does not just sit there. A ship patrols the right edge, stops level with each weekday row, and fires a beam down it — squares start **empty** and fill in as the beam sweeps past. Once all seven rows are done a second ship streaks a full lap of the poster, and the cycle repeats on a 21s loop.

@@ -21,7 +21,7 @@ import {
   document_,
   fontFace,
   frame,
-  heatmap,
+  submissionCalendar,
   icon,
   monthYear,
   moonSprite,
@@ -85,7 +85,7 @@ const SECTION = {
   stack: 0, // measured at render time by layoutStack
 
   github: 646,
-  leetcode: 368,
+  leetcode: 352,
   links: 108,
 };
 
@@ -395,12 +395,14 @@ function difficultyRow(name, bucket, index, top, theme) {
 
 function leetcodeSection(top, lc, theme) {
   const rank = lc.ranking ? `#${lc.ranking.toLocaleString("en-US")}` : "";
-  const stamp = (ts) => monthYear(new Date(ts * 1000).toISOString().slice(0, 10));
+  // Sized so twelve month blocks plus their gaps clear the right margin:
+  // at cell 11 the blocks ran 103px past it and August fell off the card.
+  const calendar = submissionCalendar({ days: lc.heatmap, x: PAD, y: top + 216, cell: 10, gap: 2, monthGap: 5, theme });
 
   return (
     tagRow("leetcode", [`@${lc.username}`, rank].filter(Boolean).join("  ·  "), top + 36, theme, 40, MARK.leetcode) +
     headline(String(lc.solved.all.done), `solved of ${lc.solved.all.total}`, top, theme, 41) +
-    figure(String(lc.streak), "day streak", top + 78, theme, 42) +
+    figure(String(lc.maxStreak), "max streak", top + 78, theme, 42) +
     figure(String(lc.activeDays), "active days", top + 128, theme, 44) +
     // Difficulty bars sit in the gutter beside the headline, matching the
     // GitHub header above it.
@@ -408,17 +410,33 @@ function leetcodeSection(top, lc, theme) {
     difficultyRow("medium", lc.solved.medium, 1, top, theme) +
     difficultyRow("hard", lc.solved.hard, 2, top, theme) +
     divider(top + 168, theme) +
-    label("submissions · last 52 weeks", PAD, top + 200, theme, 50) +
-    heatmap({ days: lc.heatmap, x: PAD, y: top + 216, cell: 12, gap: 3, theme }) +
-    text(stamp(lc.heatmap[0].ts), { x: PAD, y: top + 338, size: 10, fill: theme.muted, cls: "rise d52" }) +
-    text(stamp(lc.heatmap.at(-1).ts), {
+    // LeetCode's own wording for this block.
+    text(String(lc.submissions), {
+      x: PAD,
+      y: top + 200,
+      size: 14,
+      weight: 700,
+      fill: theme.text,
+      cls: "rise d50",
+      face: "display",
+    }) +
+    text("submissions in the past one year", {
+      x: PAD + 8 + String(lc.submissions).length * 9,
+      y: top + 200,
+      size: 11,
+      fill: theme.muted,
+      cls: "rise d50",
+      face: "display",
+    }) +
+    text(`total active days ${lc.activeDays}   ·   max streak ${lc.maxStreak}`, {
       x: RIGHT,
-      y: top + 338,
+      y: top + 200,
       size: 10,
       fill: theme.muted,
       anchor: "end",
       cls: "rise d52",
-    })
+    }) +
+    calendar.markup
   );
 }
 

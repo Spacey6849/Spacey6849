@@ -65,10 +65,12 @@ export async function collectLeetCode(username) {
   // LeetCode returns 5,000,001 as "unranked" rather than omitting the field.
   const ranking = user.profile?.ranking;
 
+  const heatmap = buildHeatmap(user.userCalendar.submissionCalendar);
+
   return {
     username: user.username,
     ranking: ranking && ranking < 5_000_000 ? ranking : null,
-    streak: user.userCalendar.streak,
+    maxStreak: user.userCalendar.streak,
     activeDays: user.userCalendar.totalActiveDays,
     solved: {
       all: { done: solved.All ?? 0, total: totals.All ?? 0 },
@@ -76,6 +78,9 @@ export async function collectLeetCode(username) {
       medium: { done: solved.Medium ?? 0, total: totals.Medium ?? 0 },
       hard: { done: solved.Hard ?? 0, total: totals.Hard ?? 0 },
     },
-    heatmap: buildHeatmap(user.userCalendar.submissionCalendar),
+    heatmap,
+    // LeetCode's own header reads "N submissions in the past one year"; the
+    // calendar holds per-day counts, so the total is their sum.
+    submissions: heatmap.reduce((sum, day) => sum + day.count, 0),
   };
 }
